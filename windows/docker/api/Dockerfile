@@ -12,7 +12,7 @@ COPY out/_PublishedWebsites/Docker.AtSea.Api /web-app
 
 HEALTHCHECK CMD powershell -command `
     try { `
-     $response = iwr http://localhost:8080/atsea/utility/containerid -UseBasicParsing; `
+     $response = iwr http://localhost:9090/atsea/utility/containerid -UseBasicParsing; `
      if ($response.StatusCode -eq 200) { return 0} `
      else {return 1}; `
     } catch { return 1 }

@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git credentialsId: 'GitHub', url: 'https://github.com/cyb-swap/shop-app.git'
+            }
+        }
+        stage('Build App Docker Image') {
+            steps {
+                script {
+                    docker.build("shop_app_app:latest", "app")
+                }
+            }
+        }
+        stage('Build Database Docker Image') {
+            steps {
+                script {
+                    docker.build("shop_app_database:latest", "database")
+                }
+            }
+        }
+        stage('Build Payment Gateway Docker Image') {
+            steps {
+                script {
+                    docker.build("shop_app_payment_gateway:latest", "payment_gateway")
+                }
+            }
+        }
+        stage('Build Reverse Proxy Docker Image') {
+            steps {
+                script {
+                    docker.build("shop_app_reverse_proxy:latest", "reverse_proxy")
+                }
+            }
+        }
+        stage('Run Docker Compose') {
+            steps {
+                script {
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+            sh 'docker-compose down'
+        }
+    }
+}
