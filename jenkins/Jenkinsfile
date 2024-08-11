@@ -8,6 +8,28 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    // Navigate to the react-app directory and install dependencies
+                    dir('app/react-app') {
+                        sh 'npm install'
+                    }
+                }
+            }
+        }
+
+        stage('Run ESLint') {
+            steps {
+                script {
+                    // Navigate to the react-app directory and run ESLint
+                    dir('app/react-app') {
+                        sh 'npm run lint'
+                    }
+                }
+            }
+        }
+
         stage('Build App Docker Image') {
             steps {
                 script {
