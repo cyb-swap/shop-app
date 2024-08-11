@@ -16,27 +16,32 @@ pipeline {
                 script {
                     withSonarQubeEnv('Sonar') {
                         def sonarToken = credentials('squ_2869a0d7b671c7898f15c874f284b909323eb1ef')
-                        sh """${scannerHome}/bin/sonar-scanner \
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
                             -Dsonar.projectKey="shop-app" \
                             -Dsonar.projectName="shop-app" \
                             -Dsonar.host.url=http://localhost:9000 \
-                            -Dsonar.login="${sonarToken}"""
+                            -Dsonar.login=${sonarToken}
+                        """
                     }
                 }
             }
-            
         }
         
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('ServerNameSonar') {
-                    bat '''mvn clean verify sonar:sonar -Dsonar.projectKey=shop-app -Dsonar.projectName='shop-app' -Dsonar.host.url=http://localhost:9000''' 
+                withSonarQubeEnv('Sonar') {
+                    sh """
+                        mvn clean verify sonar:sonar \
+                        -Dsonar.projectKey=shop-app \
+                        -Dsonar.projectName="shop-app" \
+                        -Dsonar.host.url=http://localhost:9000
+                    """
                     echo 'SonarQube Analysis Completed'
                 }
             }
         }
 
-        
         stage('Build App Docker Image') {
             steps {
                 script {
