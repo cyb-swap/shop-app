@@ -48,6 +48,16 @@ pipeline {
                 }
             }
         }
+
+        stage('SCA') {
+            steps {
+                snykSecurity(
+                  snykInstallation: 'snyk',
+                  snykTokenId: '1f240d35-9b28-4124-9019-78bb1c75e4aa',
+                  failOnIssues: false,
+                )
+            }
+        }
         
         stage('Run Docker Compose') {
             steps {
