@@ -9,16 +9,13 @@ pipeline {
         }
 
         stage('Code Analysis') {
-            environment {
-                scannerHome = tool 'Sonar'
-            }
             steps {
                 script {
                     withSonarQubeEnv('Sonar') {
                         def sonarToken = credentials('squ_2869a0d7b671c7898f15c874f284b909323eb1ef')
                         sh """
                             #!/bin/bash
-                            ${scannerHome}/opt/sonar-scanner/bin/sonar-scanner \\
+                            /opt/sonar-scanner/bin/sonar-scanner \\
                             -Dsonar.projectKey="shop-app" \\
                             -Dsonar.projectName="shop-app" \\
                             -Dsonar.host.url=http://localhost:9000 \\
