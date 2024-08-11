@@ -7,6 +7,22 @@ pipeline {
                 git credentialsId: 'GitHub', url: 'https://github.com/cyb-swap/shop-app.git'
             }
         }
+
+        stage('Code Analysis') {
+            environment {
+                scannerHome = tool 'Sonar'
+            }
+            steps {
+                script {
+                    withSonarQubeEnv('Sonar') {
+                        sh "${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=shop-app \
+                            -Dsonar.projectName=shop-app \
+                            -Dsonar.host.url=http:\/\/localhost:9000"
+                    }
+                }
+            }
+        }
         
         stage('SonarQube Analysis') {
             steps {
@@ -16,6 +32,7 @@ pipeline {
                 }
             }
         }
+
         
         stage('Build App Docker Image') {
             steps {
