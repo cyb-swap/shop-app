@@ -29,20 +29,6 @@ pipeline {
             }
         }
         
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('Sonar') {
-                    sh """
-                        #!/bin/bash
-                        mvn clean verify sonar:sonar \\
-                        -Dsonar.projectKey=shop-app \\
-                        -Dsonar.projectName="shop-app" \\
-                        -Dsonar.host.url=http://localhost:9000
-                    """
-                    echo 'SonarQube Analysis Completed'
-                }
-            }
-        }
 
         stage('Build App Docker Image') {
             steps {
