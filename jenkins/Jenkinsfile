@@ -28,6 +28,7 @@ pipeline {
                 script {
                     // Navigate to the react-app directory and run ESLint
                     dir('app/react-app') {
+                        sh 'npx eslint --init'
                         sh 'npm run lint'
                     }
                 }
