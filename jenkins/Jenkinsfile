@@ -15,13 +15,16 @@ pipeline {
             steps {
                 script {
                     withSonarQubeEnv('Sonar') {
-                        sh "${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=shop-app \
-                            -Dsonar.projectName=shop-app \
-                            -Dsonar.host.url=http:\/\/localhost:9000"
+                        def sonarToken = credentials('squ_2869a0d7b671c7898f15c874f284b909323eb1ef')
+                        sh """${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey="shop-app" \
+                            -Dsonar.projectName="shop-app" \
+                            -Dsonar.host.url=http://localhost:9000 \
+                            -Dsonar.login="${sonarToken}"""
                     }
                 }
             }
+            
         }
         
         stage('SonarQube Analysis') {
