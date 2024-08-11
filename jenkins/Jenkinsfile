@@ -7,6 +7,16 @@ pipeline {
                 git credentialsId: 'GitHub', url: 'https://github.com/cyb-swap/shop-app.git'
             }
         }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('ServerNameSonar') {
+                    bat '''mvn clean verify sonar:sonar -Dsonar.projectKey=shop-app -Dsonar.projectName='shop-app' -Dsonar.host.url=http://localhost:9000''' 
+                    echo 'SonarQube Analysis Completed'
+                }
+            }
+        }
+        
         stage('Build App Docker Image') {
             steps {
                 script {
@@ -14,6 +24,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Build Database Docker Image') {
             steps {
                 script {
@@ -21,6 +32,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Build Payment Gateway Docker Image') {
             steps {
                 script {
@@ -28,6 +40,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Build Reverse Proxy Docker Image') {
             steps {
                 script {
@@ -35,6 +48,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Run Docker Compose') {
             steps {
                 script {
@@ -43,6 +57,7 @@ pipeline {
             }
         }
     }
+    
     post {
         always {
             cleanWs()
