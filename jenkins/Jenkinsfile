@@ -3,12 +3,25 @@ pipeline {
 
     tools {
         nodejs 'NodeJS' 
+        sonarQubeScanner 'SonarScanner 4.0'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
                 git credentialsId: 'GitHub', url: 'https://github.com/cyb-swap/shop-app.git'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    // Optionally set the branch name based on your SCM strategy
+                    def branchName = 'master'
+                    withSonarQubeEnv('Sonar') {
+                        sh "sonar-scanner -Dsonar.projectKey=shop-app -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000 -Dsonar.login=squ_2869a0d7b671c7898f15c874f284b909323eb1ef -Dsonar.branch.name=${branchName}"
+                    }
+                }
             }
         }
 
