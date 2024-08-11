@@ -18,10 +18,10 @@ pipeline {
                         def sonarToken = credentials('squ_2869a0d7b671c7898f15c874f284b909323eb1ef')
                         sh """
                             #!/bin/bash
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey="shop-app" \
-                            -Dsonar.projectName="shop-app" \
-                            -Dsonar.host.url=http://localhost:9000 \
+                            ${scannerHome}/bin/sonar-scanner \\
+                            -Dsonar.projectKey="shop-app" \\
+                            -Dsonar.projectName="shop-app" \\
+                            -Dsonar.host.url=http://localhost:9000 \\
                             -Dsonar.login=${sonarToken}
                         """
                     }
@@ -34,9 +34,9 @@ pipeline {
                 withSonarQubeEnv('Sonar') {
                     sh """
                         #!/bin/bash
-                        mvn clean verify sonar:sonar \
-                        -Dsonar.projectKey=shop-app \
-                        -Dsonar.projectName="shop-app" \
+                        mvn clean verify sonar:sonar \\
+                        -Dsonar.projectKey=shop-app \\
+                        -Dsonar.projectName="shop-app" \\
                         -Dsonar.host.url=http://localhost:9000
                     """
                     echo 'SonarQube Analysis Completed'
@@ -79,7 +79,7 @@ pipeline {
         stage('Run Docker Compose') {
             steps {
                 script {
-                    sh '#!/bin/bash\ndocker-compose up -d'
+                    sh 'docker-compose up -d'
                 }
             }
         }
@@ -88,7 +88,7 @@ pipeline {
     post {
         always {
             cleanWs()
-            sh '#!/bin/bash\ndocker-compose down'
+            sh 'docker-compose down'
         }
     }
 }
