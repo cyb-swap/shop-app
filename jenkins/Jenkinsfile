@@ -8,6 +8,15 @@ pipeline {
             }
         }
 
+        stage('Dependency-Check') {
+            steps {
+                dependencyCheck additionalArguments: '', odcInstallation: 'dep-check-auto'
+                dependencyCheckPublisher pattern: ''
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'dependency-check-report.xml', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                sh ' rm -rf dependency-check-report.xml*'
+            }
+        }
+        
         stage('Build App Docker Image') {
             steps {
                 script {
