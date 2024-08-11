@@ -51,11 +51,15 @@ pipeline {
 
         stage('SCA') {
             steps {
-                snykSecurity(
-                  snykInstallation: 'snyk',
-                  snykTokenId: '59e68e07-6d49-416b-a4f3-ba4523a0f631',
-                  failOnIssues: false,
-                )
+                script{
+                    dir('app/react-app') {
+                        snykSecurity(
+                            snykInstallation: 'snyk',
+                            snykTokenId: '59e68e07-6d49-416b-a4f3-ba4523a0f631',
+                            failOnIssues: false,
+                        )
+                    }
+                }
             }
         }
         
