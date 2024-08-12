@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKERHUB_CREDENTIALS = 'dckr_pat_CsXPstyoY9Wo-iTLwnU8XonrYx4' // Replace with your Docker Hub credentials ID
+        DOCKERHUB_REPO = 'luffymonkey1/shop-app' // Replace with your Docker Hub repository name
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
@@ -81,6 +86,28 @@ pipeline {
                             snykTokenId: '59e68e07-6d49-416b-a4f3-ba4523a0f631',
                             failOnIssues: false,
                         )
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Images to Docker Hub') {
+            steps {
+                script {
+                    // Login to Docker Hub
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        // Push the built images to Docker Hub
+                        def images = [
+                            "${DOCKERHUB_REPO}/shop_app_app:latest",
+                            "${DOCKERHUB_REPO}/shop_app_database:latest",
+                            "${DOCKERHUB_REPO}/shop_app_payment_gateway:latest",
+                            "${DOCKERHUB_REPO}/shop_app_reverse_proxy:latest"
+                        ]
+                        
+                        for (img in images) {
+                            echo "Pushing Docker image: ${img}"
+                            docker.image(img).push()
+                        }
                     }
                 }
             }
