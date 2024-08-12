@@ -37,11 +37,38 @@ pipeline {
 
         stage('Container Security') {
             steps {
-                sh 'grype vulnerables/web-dvwa:latest > grype.txt'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
-                sh ' rm -rf grype.txt'
-
-            }                      
+                script {
+                    try {
+                        // Run the grype scan and redirect output to grype.txt
+                        sh 'grype vulnerables/web-dvwa:latest > grype.txt'
+                
+                        // Archive the grype output regardless of success
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false
+                
+                        // Optionally read the vulnerabilities from the output file
+                        def vulnerabilities = readFile('grype.txt')
+                        echo "Grype Scan Output:\n${vulnerabilities}"
+                
+                        // Check if vulnerabilities were found and fail the build if necessary
+                        if (vulnerabilities.contains('vulnerable')) {
+                        error("Vulnerabilities found in vulnerables/web-dvwa:latest!")
+                        }
+                
+                    } catch (Exception e) {
+                        // Catch the exception and echo the error message
+                        echo "Grype scan failed: ${e.message}"
+                
+                        // Archive the output even if the grype command fails
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false
+                
+                        // Optionally fail the build or handle the error
+                        currentBuild.result = 'UNSTABLE' // Mark the build as unstable
+                    } finally {
+                        // Cleanup the output file after processing
+                        sh 'rm -rf grype.txt'
+                    }
+                }
+            }
         }        
          
         stage('SCA') {
