@@ -49,6 +49,62 @@ pipeline {
             }
         }
 
+        stage('Scan App Docker Image with Grype') {
+            steps {
+                script {
+                    // Run Grype scan on the app image
+                    sh "grype shop_app_app:latest --output json > grype_app_scan.json"
+                    // Optionally fail the build if vulnerabilities are found
+                    def vulnerabilities = readJSON(file: 'grype_app_scan.json')
+                    if (vulnerabilities.matches) {
+                        error("Vulnerabilities found in app image!")
+                    }
+                }
+            }
+        }
+
+        stage('Scan Database Docker Image with Grype') {
+            steps {
+                script {
+                    // Run Grype scan on the database image
+                    sh "grype shop_app_database:latest --output json > grype_database_scan.json"
+                    // Check for vulnerabilities
+                    def vulnerabilities = readJSON(file: 'grype_database_scan.json')
+                    if (vulnerabilities.matches) {
+                        error("Vulnerabilities found in database image!")
+                    }
+                }
+            }
+        }
+
+        stage('Scan Payment Gateway Docker Image with Grype') {
+            steps {
+                script {
+                    // Run Grype scan on the payment gateway image
+                    sh "grype shop_app_payment_gateway:latest --output json > grype_payment_gateway_scan.json"
+                    // Check for vulnerabilities
+                    def vulnerabilities = readJSON(file: 'grype_payment_gateway_scan.json')
+                    if (vulnerabilities.matches) {
+                        error("Vulnerabilities found in payment gateway image!")
+                    }
+                }
+            }
+        }
+
+        stage('Scan Reverse Proxy Docker Image with Grype') {
+            steps {
+                script {
+                    // Run Grype scan on the reverse proxy image
+                    sh "grype shop_app_reverse_proxy:latest --output json > grype_reverse_proxy_scan.json"
+                    // Check for vulnerabilities
+                    def vulnerabilities = readJSON(file: 'grype_reverse_proxy_scan.json')
+                    if (vulnerabilities.matches) {
+                        error("Vulnerabilities found in reverse proxy image!")
+                    }
+                }
+            }
+        }
+
         stage('SCA') {
             steps {
                 script{
