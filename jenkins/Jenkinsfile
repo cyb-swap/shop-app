@@ -40,22 +40,19 @@ pipeline {
                 sh 'grype shop_app_app:latest > grype.txt'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
                 sh ' rm -rf grype.txt'
-            }
-            steps {
+
                 sh 'grype shop_app_database:latest > grype.txt'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
                 sh ' rm -rf grype.txt'
-            }
-            steps {
+
                 sh 'grype shop_app_payment_gateway:latest > grype.txt'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
                 sh ' rm -rf grype.txt'
-            }
-            steps {
+
                 sh 'grype shop_app_reverse_proxy:latest > grype.txt'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
                 sh ' rm -rf grype.txt'
-            }
+            }                      
         }        
          
         stage('SCA') {
