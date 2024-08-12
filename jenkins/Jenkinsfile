@@ -17,34 +17,20 @@ pipeline {
             }
         }
         
-        stage('Build App Docker Image') {
+        stage('Build Docker Images') {
             steps {
                 script {
-                    docker.build("shop_app_app:latest", "app")
-                }
-            }
-        }
-        
-        stage('Build Database Docker Image') {
-            steps {
-                script {
-                    docker.build("shop_app_database:latest", "database")
-                }
-            }
-        }
-        
-        stage('Build Payment Gateway Docker Image') {
-            steps {
-                script {
-                    docker.build("shop_app_payment_gateway:latest", "payment_gateway")
-                }
-            }
-        }
-        
-        stage('Build Reverse Proxy Docker Image') {
-            steps {
-                script {
-                    docker.build("shop_app_reverse_proxy:latest", "reverse_proxy")
+                    def images = [
+                        ["name": "shop_app_app:latest", "path": "app"],
+                        ["name": "shop_app_database:latest", "path": "database"],
+                        ["name": "shop_app_payment_gateway:latest", "path": "payment_gateway"],
+                        ["name": "shop_app_reverse_proxy:latest", "path": "reverse_proxy"]
+                    ]
+                    
+                    for (img in images) {
+                        echo "Building Docker image: ${img.name}"
+                        docker.build(img.name, img.path)
+                    }
                 }
             }
         }
@@ -60,16 +46,21 @@ pipeline {
                     ]
                     
                     for (img in images) {
-                        // Run Grype scan on each image
-                        sh "grype ${img.name} --output json > ${img.output}"
-                        // Check if the file exists and read vulnerabilities
-                        if (fileExists(img.output)) {
-                            def vulnerabilities = readJSON(file: img.output)
-                            if (vulnerabilities.matches) {
-                                error("Vulnerabilities found in ${img.name}!")
+                        try {
+                            echo "Running Grype scan on ${img.name}"
+                            sh "grype ${img.name} --output json > ${img.output}"
+
+                            // Ensure the output file exists before attempting to read it
+                            if (fileExists(img.output)) {
+                                def vulnerabilities = readJSON file: img.output
+                                if (vulnerabilities.matches) {
+                                    error("Vulnerabilities found in ${img.name}!")
+                                }
+                            } else {
+                                error("Grype scan output not found for ${img.name}!")
                             }
-                        } else {
-                            error("Grype scan output not found for ${img.name}!")
+                        } catch (Exception e) {
+                            error("Error scanning ${img.name}: ${e.message}")
                         }
                     }
                 }
