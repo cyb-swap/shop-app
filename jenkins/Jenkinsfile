@@ -66,40 +66,40 @@ pipeline {
                 script {
                     // List of built images to scan
                     def images = [
-                        "luffymonkey1/shop_app_app:latest",
-                        "luffymonkey1/shop_app_database:latest",
-                        "luffymonkey1/shop_app_payment_gateway:latest",
-                        "luffymonkey1/shop_app_reverse_proxy:latest"
+                        ["name": "luffymonkey1/shop_app_app:latest", "path": "app"],
+                        ["name": "luffymonkey1/shop_app_database:latest", "path": "database"],
+                        ["name": "luffymonkey1/shop_app_payment_gateway:latest", "path": "payment_gateway"],
+                        ["name": "luffymonkey1/shop_app_reverse_proxy:latest", "path": "reverse_proxy"]
                     ]
                     
                     for (img in images) {
                         try {
                             // Run the Grype scan and redirect output to grype.txt
-                            sh "grype ${img} > ${img.replace(':', '_')}_grype.txt"
+                            sh "grype ${img.name} > ${img.path}_grype.txt"
                 
                             // Archive the grype output regardless of success
-                            archiveArtifacts allowEmptyArchive: true, artifacts: "${img.replace(':', '_')}_grype.txt", fingerprint: true, followSymlinks: false
+                            archiveArtifacts allowEmptyArchive: true, artifacts: "${img.path}_grype.txt", fingerprint: true, followSymlinks: false
                             
                             // Read the vulnerabilities from the output file
-                            def vulnerabilities = readFile("${img.replace(':', '_')}_grype.txt")
+                            def vulnerabilities = readFile("${img.path}_grype.txt")
                             echo "Grype Scan Output:\n${vulnerabilities}"
                             
                             // Check if vulnerabilities were found and fail the build if necessary
                             if (vulnerabilities.contains('vulnerable')) {
-                                error("Vulnerabilities found in ${img}!")
+                                error("Vulnerabilities found in ${img.name}!")
                             }
                         } catch (Exception e) {
                             // Catch the exception and echo the error message
                             echo "Grype scan failed: ${e.message}"
                             
                             // Archive the output even if the Grype command fails
-                            archiveArtifacts allowEmptyArchive: true, artifacts: "${img.replace(':', '_')}_grype.txt", fingerprint: true, followSymlinks: false
+                            archiveArtifacts allowEmptyArchive: true, artifacts: "${img.path}_grype.txt", fingerprint: true, followSymlinks: false
                             
                             // Mark the build as unstable
                             currentBuild.result = 'UNSTABLE'
                         } finally {
                             // Cleanup the output file after processing
-                            sh "rm -rf ${img.replace(':', '_')}_grype.txt"
+                            sh "rm -rf ${img.path}_grype.txt"
                         }
                     }
                 }
