@@ -34,58 +34,7 @@ pipeline {
                 }
             }
         }
-
-        stage('Container Security') {
-            steps {
-                script {
-                    try {
-                        // Run the grype scan and redirect output to grype.txt
-                        sh 'grype vulnerables/web-dvwa:latest > grype.txt'
-                
-                        // Archive the grype output regardless of success
-                        archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false
-                
-                        // Optionally read the vulnerabilities from the output file
-                        def vulnerabilities = readFile('grype.txt')
-                        echo "Grype Scan Output:\n${vulnerabilities}"
-                
-                        // Check if vulnerabilities were found and fail the build if necessary
-                        if (vulnerabilities.contains('vulnerable')) {
-                        error("Vulnerabilities found in vulnerables/web-dvwa:latest!")
-                        }
-                
-                    } catch (Exception e) {
-                        // Catch the exception and echo the error message
-                        echo "Grype scan failed: ${e.message}"
-                
-                        // Archive the output even if the grype command fails
-                        archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false
-                
-                        // Optionally fail the build or handle the error
-                        currentBuild.result = 'UNSTABLE' // Mark the build as unstable
-                    } finally {
-                        // Cleanup the output file after processing
-                        sh 'rm -rf grype.txt'
-                    }
-                }
-            }
-        }        
-         
-        stage('SCA') {
-            steps {
-                script{
-                    dir('app/react-app') {
-                        sh 'yarn install'
-                        snykSecurity(
-                            snykInstallation: 'snyk',
-                            snykTokenId: '59e68e07-6d49-416b-a4f3-ba4523a0f631',
-                            failOnIssues: false,
-                        )
-                    }
-                }
-            }
-        }
-        
+               
         stage('Docker Push') {
             steps {
                 script {
@@ -107,6 +56,69 @@ pipeline {
                             echo "Pushing Docker image: ${img}"
                             sh "docker push ${img}"
                         }
+                    }
+                }
+            }
+        }
+
+        stage('Container Security') {
+            steps {
+                script {
+
+                    // List of built images to push
+                    def images = [
+                        "luffymonkey1/shop_app_app:latest",
+                        "luffymonkey1/shop_app_database:latest",
+                        "luffymonkey1/shop_app_payment_gateway:latest",
+                        "luffymonkey1/shop_app_reverse_proxy:latest"
+                    ]
+                    
+                    for (img in images){
+                        try {
+                            // Run the grype scan and redirect output to grype.txt
+                            sh 'grype ${img} > ${img}_grype.txt'
+                
+                            // Archive the grype output regardless of success
+                            archiveArtifacts allowEmptyArchive: true, artifacts: '${img}_grype.txt', fingerprint: true, followSymlinks: false
+                            
+                            // Optionally read the vulnerabilities from the output file
+                            def vulnerabilities = readFile('${img}_grype.txt')
+                            echo "Grype Scan Output:\n${vulnerabilities}"
+                            
+                            // Check if vulnerabilities were found and fail the build if necessary
+                            if (vulnerabilities.contains('vulnerable')) {
+                                error("Vulnerabilities found in ${img}!")
+                            }
+                        }
+                        catch (Exception e) {
+                            // Catch the exception and echo the error message
+                            echo "Grype scan failed: ${e.message}"
+                            
+                            // Archive the output even if the grype command fails
+                            archiveArtifacts allowEmptyArchive: true, artifacts: '${img}_grype.txt', fingerprint: true, followSymlinks: false
+                            
+                            // Optionally fail the build or handle the error
+                            currentBuild.result = 'UNSTABLE' // Mark the build as unstable
+                        }
+                        finally {
+                            // Cleanup the output file after processing
+                            sh 'rm -rf ${img}_grype.txt'
+                        }
+                    }
+                }
+            }
+        }       
+         
+        stage('SCA') {
+            steps {
+                script{
+                    dir('app/react-app') {
+                        sh 'yarn install'
+                        snykSecurity(
+                            snykInstallation: 'snyk',
+                            snykTokenId: '59e68e07-6d49-416b-a4f3-ba4523a0f631',
+                            failOnIssues: false,
+                        )
                     }
                 }
             }
