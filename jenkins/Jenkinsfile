@@ -46,21 +46,18 @@ pipeline {
                     ]
                     
                     for (img in images) {
-                        try {
-                            echo "Running Grype scan on ${img.name}"
-                            sh "grype ${img.name} --output json > ${img.output}"
+                        echo "Running Grype scan on ${img.name}"
+                        sh "grype ${img.name} --output json > ${img.output}"
 
-                            // Ensure the output file exists before attempting to read it
-                            if (fileExists(img.output)) {
-                                def vulnerabilities = readJSON file: img.output
-                                if (vulnerabilities.matches) {
-                                    error("Vulnerabilities found in ${img.name}!")
-                                }
-                            } else {
-                                error("Grype scan output not found for ${img.name}!")
+                        // Ensure the output file exists before attempting to read it
+                        if (fileExists(img.output)) {
+                            echo "Checking vulnerabilities in ${img.output}"
+                            def vulnerabilities = readJSON file: img.output
+                            if (vulnerabilities.matches) {
+                                error("Vulnerabilities found in ${img.name}!")
                             }
-                        } catch (Exception e) {
-                            error("Error scanning ${img.name}: ${e.message}")
+                        } else {
+                            error("Grype scan output not found for ${img.name}!")
                         }
                     }
                 }
