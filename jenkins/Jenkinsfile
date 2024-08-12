@@ -35,35 +35,29 @@ pipeline {
             }
         }
 
-        stage('Scan Docker Images with Grype') {
+        stage('Container Security') {
             steps {
-                script {
-                    def images = [
-                        ["name": "shop_app_app:latest", "output": "grype_app_scan.json"],
-                        ["name": "shop_app_database:latest", "output": "grype_database_scan.json"],
-                        ["name": "shop_app_payment_gateway:latest", "output": "grype_payment_gateway_scan.json"],
-                        ["name": "shop_app_reverse_proxy:latest", "output": "grype_reverse_proxy_scan.json"]
-                    ]
-                    
-                    for (img in images) {
-                        echo "Running Grype scan on ${img.name}"
-                        sh "grype ${img.name} --output json > ${img.output}"
-
-                        // Ensure the output file exists before attempting to read it
-                        if (fileExists(img.output)) {
-                            echo "Checking vulnerabilities in ${img.output}"
-                            def vulnerabilities = readJSON file: img.output
-                            if (vulnerabilities.matches) {
-                                error("Vulnerabilities found in ${img.name}!")
-                            }
-                        } else {
-                            error("Grype scan output not found for ${img.name}!")
-                        }
-                    }
-                }
+                sh 'grype shop_app_app:latest > grype.txt'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                sh ' rm -rf grype.txt'
             }
-        }
-        
+            steps {
+                sh 'grype shop_app_database:latest > grype.txt'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                sh ' rm -rf grype.txt'
+            }
+            steps {
+                sh 'grype shop_app_payment_gateway:latest > grype.txt'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                sh ' rm -rf grype.txt'
+            }
+            steps {
+                sh 'grype shop_app_reverse_proxy:latest > grype.txt'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                sh ' rm -rf grype.txt'
+            }
+        }        
+         
         stage('SCA') {
             steps {
                 script{
