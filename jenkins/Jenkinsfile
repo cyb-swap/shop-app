@@ -21,10 +21,10 @@ pipeline {
             steps {
                 script {
                     def images = [
-                        ["name": "shop_app_app:latest", "path": "app"],
-                        ["name": "shop_app_database:latest", "path": "database"],
-                        ["name": "shop_app_payment_gateway:latest", "path": "payment_gateway"],
-                        ["name": "shop_app_reverse_proxy:latest", "path": "reverse_proxy"]
+                        ["name": "luffymonkey1/shop_app_app:latest", "path": "app"],
+                        ["name": "luffymonkey1/shop_app_database:latest", "path": "database"],
+                        ["name": "luffymonkey1/shop_app_payment_gateway:latest", "path": "payment_gateway"],
+                        ["name": "luffymonkey1/shop_app_reverse_proxy:latest", "path": "reverse_proxy"]
                     ]
                     
                     for (img in images) {
@@ -87,11 +87,27 @@ pipeline {
         }
         
         stage('Docker Push') {
-            agent any
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
-                    sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
-                    sh 'docker push luffymonkey1/shop_app_app:latest'
+                script {
+                    // Use withCredentials to handle Docker Hub credentials securely
+                    withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+                        // Login to Docker Hub
+                        sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+                        
+                        // List of built images to push
+                        def images = [
+                            "luffymonkey1/shop_app_app:latest",
+                            "luffymonkey1/shop_app_database:latest",
+                            "luffymonkey1/shop_app_payment_gateway:latest",
+                            "luffymonkey1/shop_app_reverse_proxy:latest"
+                        ]
+                        
+                        // Push each image to Docker Hub
+                        for (img in images) {
+                            echo "Pushing Docker image: ${img}"
+                            sh "docker push ${img}"
+                        }
+                    }
                 }
             }
         }
