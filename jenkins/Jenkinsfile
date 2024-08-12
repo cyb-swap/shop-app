@@ -34,7 +34,7 @@ pipeline {
                 }
             }
         }
-               
+/*         
         stage('Docker Push') {
             steps {
                 script {
@@ -60,7 +60,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Container Security') {
             steps {
                 script {
