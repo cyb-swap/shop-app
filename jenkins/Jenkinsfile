@@ -15,6 +15,15 @@ pipeline {
             }
         }
 
+        stage('Trufflehog Scan') {
+            steps {
+                script {
+                    sh 'trufflehog --json --no-update --exclude .git --path . > trufflehog_report.json'
+                    archiveArtifacts artifacts: 'trufflehog_report.json', fingerprint: true
+                }
+            }
+        }
+/*
         stage('Dependency-Check') {
             steps {
                 dependencyCheck additionalArguments: '--nvdApiKey 2a6b167d-8721-4fd6-878c-dc4a156434f7', odcInstallation: 'dep-check-auto'
@@ -41,7 +50,7 @@ pipeline {
                 }
             }
         }
-/*         
+        
         stage('Docker Push') {
             steps {
                 script {
@@ -136,7 +145,7 @@ pipeline {
             }
         }
 
-*/
+
         
         stage('DAST') {
             steps {
@@ -153,8 +162,9 @@ pipeline {
                 sh ' rm -rf report-zap-cli-jenkins.md'
             }
         }
+*/ 
     }
-    
+   
     
     post {
         always {
