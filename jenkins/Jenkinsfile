@@ -1,6 +1,13 @@
 pipeline {
     agent any
 
+    environment {
+        TARGET_URL = 'http://testphp.vulnweb.com/'
+        ZAP_PATH = '/var/lib/jenkins/ZAP_2.15.0/zap.sh'
+        ZAP_API_KEY = 'ehiqcio615oc2a922108k05crh'
+        ZAP_PORT = '8081'
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
@@ -60,7 +67,7 @@ pipeline {
                 }
             }
         }
-*/
+
         stage('Container Security') {
             steps {
                 script {
@@ -128,7 +135,26 @@ pipeline {
                 }
             }
         }
+
+*/
+        
+        stage('DAST') {
+            steps {
+                sh'''
+                zap-cli start --start-options -daemon
+                zap-cli status
+                zap-cli open-url ${TARGET_URL}
+                zap-cli spider ${TARGET_URL}
+                zap-cli active-scan ${TARGET_URL}
+                zap-cli -v report -o report-zap-cli-jenkins.md -f md
+                zap-cli shutdown
+                '''  
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'report-zap-cli-jenkins.md', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                sh ' rm -rf report-zap-cli-jenkins.md'
+            }
+        }
     }
+    
     
     post {
         always {
