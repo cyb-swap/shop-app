@@ -18,7 +18,7 @@ pipeline {
         stage('Trufflehog Scan') {
             steps {
                 script {
-                    sh 'trufflehog --json --no-update --exclude .git --path . > trufflehog_report.json'
+                    sh 'trufflehog --json --no-update --path . > trufflehog_report.json'
                     archiveArtifacts artifacts: 'trufflehog_report.json', fingerprint: true
                 }
             }
