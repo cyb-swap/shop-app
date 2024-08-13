@@ -18,7 +18,7 @@ pipeline {
         stage('Trufflehog Scan') {
             steps {
                 script {
-                    sh 'trufflehog git https://github.com/cyb-swap/shop-app.git > trufflehog_report.json'
+                    sh 'trufflehog git --no-update https://github.com/cyb-swap/shop-app.git > trufflehog_report.json'
                     archiveArtifacts artifacts: 'trufflehog_report.json', fingerprint: true
                 }
             }
